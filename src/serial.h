@@ -187,6 +187,7 @@ int serial_receive(int file_descriptor, char *buffer,size_t data_len);
 
 int send_message(int fd, const int size, const char *data);
 int receive_message(int fd, char* data, int* size);
+int receive_message_one_by_one(int fd, char* data, int* size);
 
 #ifdef __cplusplus
 }

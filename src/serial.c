@@ -533,7 +533,7 @@ int read_data(char *data, int *length, int *start_position, int *stop_positon, c
         {
             if(check_stop_flag(data+check_point) > 0)
             {                
-                *stop_positon = check_point + 3;
+                *stop_positon = check_point + 2;
 
                 length_this_msg = check_point - data_start_position;
 
@@ -563,6 +563,45 @@ int read_data(char *data, int *length, int *start_position, int *stop_positon, c
 }
 
 
+
+int receive_message_one_by_one(int fd, char* data, int* size)
+{
+    char one_byte[1];
+    char three_bytes_buf[3] = {'0','0','0'};
+
+    int record_counter = -1;
+    int msg_received = -1;
+
+    while(serial_receive(fd, one_byte, 1))
+    {
+        if(record_counter > -1)
+        {
+            *(data+record_counter) = one_byte[0];
+            record_counter ++;
+        }
+
+        three_bytes_buf[0] = three_bytes_buf[1];
+        three_bytes_buf[1] = three_bytes_buf[2];
+        three_bytes_buf[2] = one_byte[0];
+
+        if(check_start_flag(three_bytes_buf) > 0)
+        {
+            record_counter = 0;
+        }
+        if(check_stop_flag(three_bytes_buf) > 0 && record_counter > 0)
+        {
+            msg_received = 1;
+            *size = record_counter-3;
+            break;
+        }
+
+        if(record_counter > RECBUFSIZE) break;
+
+    }
+    return msg_received;
+}
+
+
 int receive_message(int fd, char* data, int* size)
 {
     /* Retreive RECBUFSIZE = 256 Bytes MAX */
@@ -577,15 +616,10 @@ int receive_message(int fd, char* data, int* size)
     length = serial_receive(fd, data_buf, RECBUFSIZE);
 
 
-    // for(int i=0; i<length; i++)
-    // {
-    //     printf("%X ",*(data_buf+i));
-    // }
-
     if(length < 1){return -1;} // return if serial port receives nothing
 
     int old_data_length = 0;
-    if(start_index < stop_index)
+    if(start_index < stop_index && stop_index - start_index < RECBUFSIZE)
     {   
         old_data_length = stop_index - start_index;
         memcpy(receive_data_double_storage, &receive_data_storage[start_index], old_data_length);

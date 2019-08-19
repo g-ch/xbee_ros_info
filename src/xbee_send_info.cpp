@@ -35,7 +35,7 @@ void rosOutCallback(const rosgraph_msgs::Log &msg)
 
     if(fd<1)
     {
-        fd = serial_open_file("/dev/ttyUSB1", 57600);
+        fd = serial_open_file("/dev/ttyUSB0", 57600);
     }
     send_message(fd, content.size(), data_send);
     std::cout<< "message sent" << std::endl;
@@ -47,21 +47,21 @@ int main(int argc, char **argv) {
     fd = serial_open_file("/dev/ttyUSB1", 57600);
     ROS_INFO("Open Serial: [%d]", fd);
     initsecs = (int)(ros::Time::now().toSec());
-    //ros::Subscriber sub = n.subscribe("/rosout", 10, rosOutCallback); //buffer size 10
+    ros::Subscriber sub = n.subscribe("/rosout", 10, rosOutCallback); //buffer size 10
     
-    rosgraph_msgs::Log fake_msg;
-    fake_msg.level = 8;
-    fake_msg.name = "fake node";
-    fake_msg.msg = "this is a test message";
+    // rosgraph_msgs::Log fake_msg;
+    // fake_msg.level = 8;
+    // fake_msg.name = "fake node";
+    // fake_msg.msg = "this is a test message";
 
-    ros::Rate loop_rate(100);
-    while(ros::ok())
-    {
-        rosOutCallback(fake_msg);
+    // ros::Rate loop_rate(100);
+    // while(ros::ok())
+    // {
+    //     rosOutCallback(fake_msg);
 
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
+    //     ros::spinOnce();
+    //     loop_rate.sleep();
+    // }
 
     ros::spin();
 
